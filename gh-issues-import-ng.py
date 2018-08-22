@@ -202,13 +202,16 @@ def format_comment(template_data):
 	template = config.get('format', 'comment_template', fallback=default_template)
 	return format_from_template(template, template_data)
 
-def send_request(which, url, post_data=None):
+def send_request(which, url, post_data=None, method=None):
 
 	if post_data is not None:
 		post_data = json.dumps(post_data).encode("utf-8")
 	
 	full_url = "%s/%s" % (config.get(which, 'url'), url)
-	req = urllib.request.Request(full_url, post_data)
+	if method:
+		req = urllib.request.Request(full_url, post_data, method=method)
+	else:
+		req = urllib.request.Request(full_url, post_data, method=method)
 	
 	username = config.get(which, 'username')
 	password = config.get(which, 'password')
@@ -234,6 +237,9 @@ def send_request(which, url, post_data=None):
 			if 'message' in error_details:
 				error_message += "\nDETAILS: " + error_details['message']
 			sys.exit(error_message)
+	except urllib.error.URLError as error:
+			print("Encountered a fatal error requesting URL {0}".format(req.get_full_url()), file=sys.stderr)
+			sys.exit(error)
 	
 	return json.loads(json_data.decode("utf-8"))
 
@@ -313,6 +319,11 @@ def import_comments(comments, issue_number):
 		
 	return result_comments
 
+def patch_issue(which, issue_number, issue_payload):
+	'''Edit an existing issue, see https://developer.github.com/v3/issues/#edit-an-issue'''
+	result = send_request(which, 'issues/{number}'.format(number=issue_number), issue_payload, method='PATCH')
+	return result
+
 # Will only import milestones and issues that are in use by the imported issues, and do not exist in the target repository
 def import_issues(issues):
 
@@ -331,6 +342,8 @@ def import_issues(issues):
 		return None
 	
 	new_issues = []
+	open_issue_ids = []
+	closed_issue_ids = []
 	num_new_comments = 0
 	new_milestones = []
 	new_labels = []
@@ -339,6 +352,13 @@ def import_issues(issues):
 		
 		new_issue = {}
 		new_issue['title'] = issue['title']
+		# note: id will not be created remotely, used for local dereferencing
+		# note: id is not the same as number
+		new_issue['id'] = issue['id']
+		if issue['state'] == 'open':
+			open_issue_ids.append(issue['id'])
+		elif issue['state'] == 'closed':
+			closed_issue_ids.append(issue['id'])
 		
 		# Temporary fix for marking closed issues
 		if issue['closed_at']:
@@ -388,7 +408,8 @@ def import_issues(issues):
 	state.current = state.IMPORT_CONFIRMATION
 	
 	print("You are about to add to '" + config.get('target', 'repository') + "':")
-	print(" *", len(new_issues), "new issues") 
+	print(" *", len(open_issue_ids), "open issues")
+	print(" *", len(closed_issue_ids), "closed issues")
 	print(" *", num_new_comments, "new comments") 
 	print(" *", len(new_milestones), "new milestones") 
 	print(" *", len(new_labels), "new labels") 
@@ -421,7 +442,9 @@ def import_issues(issues):
 		
 		result_issue = send_request('target', "issues", issue)
 		print("Successfully created issue '%s'" % result_issue['title'])
-		
+		if issue['id'] in closed_issue_ids:
+			issue['state'] = 'closed'
+			patch_issue('target', result_issue['number'], issue)
 		if 'comments' in issue:
 			result_comments = import_comments(issue['comments'], result_issue['number'])		
 			print(" > Successfully added", len(result_comments), "comments.")
