@@ -54,6 +54,7 @@ def init_config():
 	arg_parser.add_argument('--ignore-comments',  dest='ignore_comments',  action='store_true', help="Do not import comments in the issue.")		
 	arg_parser.add_argument('--ignore-milestone', dest='ignore_milestone', action='store_true', help="Do not import the milestone attached to the issue.")
 	arg_parser.add_argument('--ignore-labels',    dest='ignore_labels',    action='store_true', help="Do not import labels attached to the issue.")
+	arg_parser.add_argument('--ignore-pull-requests', dest='ignore_pulls', action='store_true', help="Do not import pull requests.")
 	
 	arg_parser.add_argument('--issue-template', help="Specify a template file for use with issues.")
 	arg_parser.add_argument('--comment-template', help="Specify a template file for use with comments.")
@@ -116,6 +117,7 @@ def init_config():
 	config.set('settings', 'import-comments',  str(not args.ignore_comments))
 	config.set('settings', 'import-milestone', str(not args.ignore_milestone))
 	config.set('settings', 'import-labels',    str(not args.ignore_labels))
+	config.set('settings', 'import-pulls',    str(not args.ignore_pulls))
 	
 	config.set('settings', 'import-open-issues',   str(args.import_all or args.import_open));
 	config.set('settings', 'import-closed-issues', str(args.import_all or args.import_closed));
@@ -344,6 +346,7 @@ def import_issues(issues):
 	new_issues = []
 	open_issue_ids = []
 	closed_issue_ids = []
+	pull_request_ids = []
 	num_new_comments = 0
 	new_milestones = []
 	new_labels = []
@@ -397,12 +400,25 @@ def import_issues(issues):
 		template_data['date'] = format_date(issue['created_at'])
 		template_data['url'] =  issue['html_url']
 		template_data['body'] = issue['body']
-		
-		if "pull_request" in issue and issue['pull_request']['html_url'] is not None:
-			new_issue['body'] = format_pull_request(template_data)
-		else:
+
+		if 'pull_request' in issue:
+			if config.getboolean('settings', 'import-pulls'):
+				pull_request_ids.append(issue['id'])
+				if issue['pull_request']['html_url'] is not None:
+					new_issue['body'] = format_pull_request(template_data)
+			else:
+				continue # skip this (pull request) issue
+		else: # regular issue, not a pull request
 			new_issue['body'] = format_issue(template_data)
-		
+
+		# note: id will not be created remotely, used for local dereferencing
+		# note: id is not the same as number
+		new_issue['id'] = issue['id']
+		if issue['state'] == 'open':
+			open_issue_ids.append(issue['id'])
+		elif issue['state'] == 'closed':
+			closed_issue_ids.append(issue['id'])
+
 		new_issues.append(new_issue)
 	
 	state.current = state.IMPORT_CONFIRMATION
@@ -410,6 +426,7 @@ def import_issues(issues):
 	print("You are about to add to '" + config.get('target', 'repository') + "':")
 	print(" *", len(open_issue_ids), "open issues")
 	print(" *", len(closed_issue_ids), "closed issues")
+	print(" *", len(pull_request_ids), "pull requests")
 	print(" *", num_new_comments, "new comments") 
 	print(" *", len(new_milestones), "new milestones") 
 	print(" *", len(new_labels), "new labels") 

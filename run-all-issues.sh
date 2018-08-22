@@ -31,7 +31,7 @@ echo -e "Error Report:" > ./output.log
 for ((i=$ISSUE_START; i<=$ISSUE_LAST;i++)); do
     echo -e "################ Transferring issue '$i' #########################"
     # If you do not append --ignore-milestone --ignore-labels, you will meet "DETAILS: Validation Failed" message.
-    yes Y | ./gh-issues-import-ng.py -i $i --ignore-milestone --ignore-labels 
+    yes Y | ./gh-issues-import-ng.py -i $i --ignore-milestone --ignore-labels --ignore-pull-requests
     if [[ $? == 0 ]]; then
         echo -e "Successfully transferred issue $i."
     else
