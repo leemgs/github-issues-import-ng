@@ -101,7 +101,18 @@ def init_config():
 	if args.issue_template: config.set('format', 'issue_template', args.issue_template)
 	if args.comment_template: config.set('format', 'comment_template', args.comment_template)
 	if args.pull_request_template: config.set('format', 'pull_request_template', args.pull_request_template)
-	
+
+	# manual setting for TAOS-CI
+	config.set('source', 'username'  , config.get('source','username'))
+	config.set('source', 'password'  , config.get('source','password'))
+	config.set('source', 'server'    , config.get('source','server'))
+	config.set('source', 'repository', config.get('source','repository'))
+
+	config.set('target', 'username'  , config.get('target','username'))
+	config.set('target', 'password'  , config.get('target','password'))
+	config.set('target', 'server'    , config.get('target','server'))
+	config.set('target', 'repository', config.get('target','repository'))
+
 	config.set('settings', 'import-comments',  str(not args.ignore_comments))
 	config.set('settings', 'import-milestone', str(not args.ignore_milestone))
 	config.set('settings', 'import-labels',    str(not args.ignore_labels))
@@ -132,6 +143,10 @@ def init_config():
 	
 	get_server_for('source')
 	get_server_for('target')
+	print("source server  is '%s'" % config.get('source','server'))
+	print("source api_url is '%s'" % config.get('source','url'))
+	print("target server  is '%s'" % config.get('target','server'))
+	print("source api_url is '%s'" % config.get('target','url'))
 	
 	
 	# Prompt for username/password if none is provided in either the config or an argument
@@ -201,7 +216,7 @@ def send_request(which, url, post_data=None):
 	
 	req.add_header("Content-Type", "application/json")
 	req.add_header("Accept", "application/json")
-	req.add_header("User-Agent", "IQAndreas/github-issues-import")
+	req.add_header("User-Agent", "github-issues-import-ng")
 	
 	try:
 		response = urllib.request.urlopen(req)
@@ -210,7 +225,8 @@ def send_request(which, url, post_data=None):
 		
 		error_details = error.read();
 		error_details = json.loads(error_details.decode("utf-8"))
-		
+
+		print("DEBUG: '%s' could not execute a webhook request with json. Type is '%s'." % (which, url))
 		if error.code in http_error_messages:
 			sys.exit(http_error_messages[error.code])
 		else:

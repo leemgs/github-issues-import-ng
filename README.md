@@ -1,9 +1,28 @@
 
-### GitHub Issues Import ###
+### GitHub Issues Import - NG ###
 
 This Python script allows you to import issues and pull requests from one repository to another; works even for private repositories, and if the two repositories are not related to each other in any way.
 
-Fork of one of the tools by [Max Korenkov](https://github.com/mkorenkov) separated from its original location at [`mokorenkov/tools`](https://github.com/mkorenkov/tools).
+The **github-issues-import-ng** repository is forked from the below websites to transfer issues and pull requests between github and github (or github enterprise) repository.
+* Original website - [`mokorenkov/tools`](https://github.com/mkorenkov/tools).
+* Forked website - [`IQAndreas/github-issues-import`](https://github.com/IQAndreas/github-issues-import).
+
+It is forked as a next-generation github issue importer. The goal of this repository is as following:
+* Support a stability by fixing bugs that people report
+* Keep a maintenance to review and merge pull requests
+* Add a new features that are proposed via a pull request process by contributors
+* Support a issue migration between github enterprise and github community as well as github communities
+
+
+### Getting Started ###
+First of all, you have to create a config.ini file to apply your github repositories. Then, run ./run-all-issues.sh command.
+```bash
+$ cp ./config.ini.sample ./config.ini
+$ vi ./config.ini
+$ vi ./run-all-issue.sh
+$ ./run-all-issue.sh
+```
+
 
 #### Usage ####
 
