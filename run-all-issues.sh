@@ -12,21 +12,29 @@
 # Please modify the variable ISSUE_LAST by running "./gh-issue-import-ng.py --all" command.
 echo -e "\n\n\n"
 echo -e "Starting a github issue mover..."
-echo -e "[DEBUG] Please modify the variable ISSUE_LAST by running './gh-issue-import-ng.py --all' command."
-# You can get the "399 new issues" message.
+echo -e "[DEBUG] Please modify 'ISSUE_LAST' value by running './gh-issue-import-ng.py --all'."
+echo -e "[DEBUG] You can get the ISSUE_LAST value from 'output: xxx new issues' message."
 declare -i ISSUE_START
 declare -i ISSUE_LAST
 ISSUE_START=1
 ISSUE_LAST=154
 
-# We have to wait for 3 minutes on average whenever 30 issues are proceeded to avoid service denial.
-# If you do not use appriate items and wait time, you will meet " There was a problem during authentication." message.
-# We have set a heuristic values from our experience to do not meet unexpected situation such as service error.
-# We recommend that you try to set ISSUE_ITEMS among 20(recommended), 30, 40, 50, and 60.
-ISSUE_ITEMS=20
-ISSUE_WAIT_TIME=$((60*15))
-
 # ----------------------------- Do not modify the below statements ----------------------
+# Understanding the rate limit rule of github.com
+# First of all, we have to find out the maximum number of requests we are permitted
+# by the rate limit rules of github.com by running as following:
+# 1. anonymous access: "curl -i https://api.github.com/users/<user_id> | grep RateLimit"
+# 2. token key access: "curl -i https://api.github.com/users -u <user_id>:<token_key> | grep RateLimit"
+#
+# If you don't know an appriate items and a wait time, you will meet the below error message.
+# "There was a problem during authentication." message.
+# So, we have set a heuristic value from our experience to do not meet unexpected situation
+# such as service error. We recommend that you try to set ISSUE_ITEMS among 20(recommended),
+# 30, 40, 50, and 60. We have to wait for 20 minutes on average whenever 20 issues are
+# proceeded to avoid service denial.
+ISSUE_ITEMS=20
+ISSUE_WAIT_TIME=$((60*20))
+
 echo -e "Error Report:" > ./output.log
 for ((i=$ISSUE_START; i<=$ISSUE_LAST;i++)); do
     echo -e "################ Transferring issue '$i' #########################"
@@ -41,12 +49,8 @@ for ((i=$ISSUE_START; i<=$ISSUE_LAST;i++)); do
 
     # In case that an issue number is $ISSUE_ITEMS, ...
     if [[ $(($i % $ISSUE_ITEMS)) == 0 ]]; then
-        echo -e "Freezing this task for $ISSUE_WAIT_TIME seconds to avoid service denial..."
+        echo -e "Freezing this task for $ISSUE_WAIT_TIME seconds to avoid a service denial..."
         sleep $ISSUE_WAIT_TIME
-    # In case that an issue number is $ISSUE_ITEMS*3, ...
-    elif [[ $(($i % $ISSUE_ITEMS*3)) == 0 ]]; then
-        echo -e "Freezing this task for $(($ISSUE_WAIT_TIME*2)) seconds to avoid service denial..."
-        sleep $(($ISSUE_WAIT_TIME*2))
     else
         echo -e "Waiting for 1 seconds..."
         sleep 1
