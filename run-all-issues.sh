@@ -34,17 +34,24 @@ ISSUE_LAST=154
 # proceeded to avoid service denial.
 ISSUE_ITEMS=20
 ISSUE_WAIT_TIME=$((60*20))
+LOG_FILE="output.log"
 
-echo -e "Error Report:" > ./output.log
+# If you meet suddenly a "DETAILS: Validation Failed" message, we recommend that you try to
+# append "--ignore-milestone --ignore-labels",
+IMPORT_OPTION="--ignore-milestone --ignore-labels --ignore-pull-requests"
+
+echo -e "Error Report:" > $LOG_FILE
 for ((i=$ISSUE_START; i<=$ISSUE_LAST;i++)); do
     echo -e "################ Transferring issue '$i' #########################"
-    # If you do not append --ignore-milestone --ignore-labels, you will meet "DETAILS: Validation Failed" message.
-    yes Y | ./gh-issues-import-ng.py -i $i --ignore-milestone --ignore-labels --ignore-pull-requests
+    yes Y | ./gh-issues-import-ng.py -i $i $IMPORT_OPTION
     if [[ $? == 0 ]]; then
         echo -e "Successfully transferred issue $i."
     else
-        echo -e "Oooops. Issue $i is failed."
-        echo -e "Oooops. Issue $i is failed." >> ./output.log
+        # Save error messages into the log file.
+        echo -e "Oooops. Issue $i is failed. The message is saved in $LOG_FILE file."
+        echo -e "Issue $i is failed." >> $LOG_FILE
+        # Let's stop the program.
+        exit 1
     fi
 
     # In case that an issue number is $ISSUE_ITEMS, ...
