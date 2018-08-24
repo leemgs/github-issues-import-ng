@@ -12,12 +12,14 @@
 # Write your account name of github.com website
 github_com_id="leemgs"
 
-# Declare the number of issues that you want to maintain with a group to avoid a service denial.
+# Declare the number of issues that you want to maintain as a group to avoid a service denial
+# when webhook API requests exceed a max number of a rate limit in github.com.
 # Note: If you meet "ERROR: There was a problem during authentication", we recommend
-# that you try to define a smaller number instead of 20 (binding issues as a group) to avoid
-# this issue. For example, 20(default), 10, 8, 6, 4, and 2 issues.
-# When the number of specified issues are proceeded, the program sleep for a specified time.
-ISSUE_ITEMS_GROUP=2
+# that you try to define smaller numbers instead of 20 (binding issues as a group).
+# For example, 20(default), 10, 8, 6, 4, and 2 issues.
+# When the number of specified issues are proceeded, the program sleep for a specified time
+# before starting processing a next issue group.
+ISSUE_ITEMS_GROUP=20
 
 # ----------------------------- Do not modify the below statements ----------------------
 if [[ $1 == "--query" ]]; then
