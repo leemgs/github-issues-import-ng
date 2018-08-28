@@ -25,8 +25,65 @@ $ ./run-all-issue.sh
 
 ## Advanced ##
 
-Run the script with the following command to import all open issues into the repository defined in the config:
+The statement below show options of gh-issues-import-ng.py script.
+```bash
+$ ./gh-issues-import-ng.py  --help
+usage: gh-issues-import-ng.py [-h] [--config CONFIG | --no-config]
+                              [-u USERNAME] [-p PASSWORD] [-s SOURCE]
+                              [-t TARGET] [--ignore-comments]
+                              [--ignore-milestone] [--ignore-labels]
+                              [--ignore-pull-requests]
+                              [--issue-template ISSUE_TEMPLATE]
+                              [--comment-template COMMENT_TEMPLATE]
+                              [--pull-request-template PULL_REQUEST_TEMPLATE]
+                              (--all | --open | --closed | -i ISSUES [ISSUES ...])
 
+Import issues from one GitHub repository into another.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --config CONFIG       The location of the config file (either absolute, or
+                        relative to the current working directory). Defaults
+                        to `config.ini` found in the same folder as this
+                        script.
+  --no-config           No config file will be used, and the default
+                        `config.ini` will be ignored. Instead, all settings
+                        are either passed as arguments, or (where possible)
+                        requested from the user as a prompt.
+  -u USERNAME, --username USERNAME
+                        The username of the account that will create the new
+                        issues. The username will not be stored anywhere if
+                        passed in as an argument.
+  -p PASSWORD, --password PASSWORD
+                        The password (in plaintext) of the account that will
+                        create the new issues. The password will not be stored
+                        anywhere if passed in as an argument.
+  -s SOURCE, --source SOURCE
+                        The source repository which the issues should be
+                        copied from. Should be in the format
+                        `user/repository`.
+  -t TARGET, --target TARGET
+                        The destination repository which the issues should be
+                        copied to. Should be in the format `user/repository`.
+  --ignore-comments     Do not import comments in the issue.
+  --ignore-milestone    Do not import the milestone attached to the issue.
+  --ignore-labels       Do not import labels attached to the issue.
+  --ignore-pull-requests
+                        Do not import pull requests.
+  --issue-template ISSUE_TEMPLATE
+                        Specify a template file for use with issues.
+  --comment-template COMMENT_TEMPLATE
+                        Specify a template file for use with comments.
+  --pull-request-template PULL_REQUEST_TEMPLATE
+                        Specify a template file for use with pull requests.
+  --all                 Import all issues, regardless of state.
+  --open                Import only open issues.
+  --closed              Import only closed issues.
+  -i ISSUES [ISSUES ...], --issues ISSUES [ISSUES ...]
+                        The list of issues to import.
+```
+
+Run the script with the following command to import all open issues into the repository defined in the config:
 ```bash
  $ python3 gh-issues-import-ng.py --open
 ```

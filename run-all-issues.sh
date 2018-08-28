@@ -19,7 +19,7 @@ github_com_id="leemgs"
 # For example, 20(default), 10, 8, 6, 4, and 2 issues.
 # When the number of specified issues are proceeded, the program sleep for a specified time
 # before starting processing a next issue group.
-ISSUE_ITEMS_GROUP=20
+ISSUE_ITEMS_GROUP=2
 
 # ----------------------------- Do not modify the below statements ----------------------
 if [[ $1 == "--query" ]]; then
