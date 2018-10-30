@@ -144,11 +144,11 @@ def init_config():
 
     def get_server_for(which):
         # Default to 'github.com' if no server is specified
-        if (not config.has_option(which, 'server')):
+        if not config.has_option(which, 'server'):
             config.set(which, 'server', "github.com")
 
         # if SOURCE server is not github.com, then assume ENTERPRISE github (yourdomain.com/api/v3...)
-        if (config.get(which, 'server') == "github.com"):
+        if config.get(which, 'server') == "github.com":
             api_url = "https://api.github.com"
         else:
             api_url = "https://%s/api/v3" % config.get(which, 'server')
