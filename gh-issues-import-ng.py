@@ -32,7 +32,7 @@ http_error_messages = {}
 http_error_messages[
     401] = "ERROR: There was a problem during authentication.\nDouble check that your username and password are correct, and that you have permission to read from or write to the specified repositories."
 http_error_messages[403] = http_error_messages[
-    401];  # Basically the same problem. GitHub returns 403 instead to prevent abuse.
+    401]  # Basically the same problem. GitHub returns 403 instead to prevent abuse.
 http_error_messages[
     404] = "ERROR: Unable to find the specified repository.\nDouble check the spelling for the source and target repositories. If either repository is private, make sure the specified user is allowed access to it."
 
@@ -79,7 +79,7 @@ def init_config():
                                help="Import all issues, regardless of state.")
     include_group.add_argument("--open", dest='import_open', action='store_true', help="Import only open issues.")
     include_group.add_argument("--closed", dest='import_closed', action='store_true', help="Import only closed issues.")
-    include_group.add_argument("-i", "--issues", type=int, nargs='+', help="The list of issues to import.");
+    include_group.add_argument("-i", "--issues", type=int, nargs='+', help="The list of issues to import.")
 
     args = arg_parser.parse_args()
 
@@ -133,8 +133,8 @@ def init_config():
     config.set('settings', 'import-labels', str(not args.ignore_labels))
     config.set('settings', 'import-pulls', str(not args.ignore_pulls))
 
-    config.set('settings', 'import-open-issues', str(args.import_all or args.import_open));
-    config.set('settings', 'import-closed-issues', str(args.import_all or args.import_closed));
+    config.set('settings', 'import-open-issues', str(args.import_all or args.import_open))
+    config.set('settings', 'import-closed-issues', str(args.import_all or args.import_closed))
 
     # Make sure no required config values are missing
     if not config.has_option('source', 'repository'):
@@ -197,7 +197,7 @@ def init_config():
 def format_date(datestring):
     # The date comes from the API in ISO-8601 format
     date = datetime.datetime.strptime(datestring, "%Y-%m-%dT%H:%M:%SZ")
-    date_format = config.get('format', 'date', fallback='%A %b %d, %Y at %H:%M GMT', raw=True);
+    date_format = config.get('format', 'date', fallback='%A %b %d, %Y at %H:%M GMT', raw=True)
     return date.strftime(date_format)
 
 
@@ -250,7 +250,7 @@ def send_request(which, url, post_data=None, method=None):
         json_data = response.read()
     except urllib.error.HTTPError as error:
 
-        error_details = error.read();
+        error_details = error.read()
         error_details = json.loads(error_details.decode("utf-8"))
 
         print("DEBUG: '%s' could not execute a webhook request with json. Type is '%s'." % (which, url))
