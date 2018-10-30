@@ -160,7 +160,7 @@ def init_config():
     print("source server  is '%s'" % config.get('source', 'server'))
     print("source api_url is '%s'" % config.get('source', 'url'))
     print("target server  is '%s'" % config.get('target', 'server'))
-    print("source api_url is '%s'" % config.get('target', 'url'))
+    print("target api_url is '%s'" % config.get('target', 'url'))
 
     # Prompt for username/password if none is provided in either the config or an argument
     def get_credentials_for(which):
