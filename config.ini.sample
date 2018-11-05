@@ -1,6 +1,9 @@
 # Rename this file to config.ini
 
 [source]
+#for gogs support use:
+#system     = gogs
+system     = github
 server     = github.enterprise_dns.com
 repository = apple/myrepo
 username   = git.bot
