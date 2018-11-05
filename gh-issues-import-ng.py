@@ -436,6 +436,8 @@ def import_issues(issues):
             new_issue['label_objects'] = []
             for issue_label in issue['labels']:
                 found_label = get_label_by_name(issue_label['name'])
+                if not found_label:
+                    found_label = get_label_by_name(issue_label['name'].lower())
                 if found_label:
                     new_issue['label_objects'].append(found_label)
                 else:
