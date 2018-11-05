@@ -150,6 +150,8 @@ def init_config():
         # if SOURCE server is not github.com, then assume ENTERPRISE github (yourdomain.com/api/v3...)
         if config.get(which, 'server') == "github.com":
             api_url = "https://api.github.com"
+        elif config.get(which, 'system') == "gogs":
+            api_url = "https://{}/api/v1".format(config.get(which, 'server'))
         else:
             api_url = "https://%s/api/v3" % config.get(which, 'server')
 
@@ -196,7 +198,12 @@ def init_config():
 
 def format_date(datestring):
     # The date comes from the API in ISO-8601 format
-    date = datetime.datetime.strptime(datestring, "%Y-%m-%dT%H:%M:%SZ")
+    format = "%Y-%m-%dT%H:%M:%SZ"
+    if config.get("source", "system") == "gogs":
+        datestring = datestring[:-3] + datestring[-2:]
+        #2016-11-02T13:36:53+0100
+        format = "%Y-%m-%dT%H:%M:%S%z"
+    date = datetime.datetime.strptime(datestring, format)
     date_format = config.get('format', 'date', fallback='%A %b %d, %Y at %H:%M GMT', raw=True)
     return date.strftime(date_format)
 
@@ -338,10 +345,16 @@ def import_comments(comments, issue_number):
     for comment in comments:
         template_data = {}
         template_data['user_name'] = comment['user']['login']
-        template_data['user_url'] = comment['user']['html_url']
+        if config.get("source", "system") == "gogs":
+            template_data['user_url'] = config.get("source", "url") + "/" + template_data['user_name']
+        else:
+            template_data['user_url'] = comment['user']['html_url']
         template_data['user_avatar'] = comment['user']['avatar_url']
         template_data['date'] = format_date(comment['created_at'])
-        template_data['url'] = comment['html_url']
+        if config.get("source", "system") == "gogs":
+            template_data['url'] = config.get("source", "url") + "/issues/" + str(comment['id'])
+        else:
+            template_data['url'] = comment['html_url']
         template_data['body'] = comment['body']
 
         comment['body'] = format_comment(template_data)
@@ -432,13 +445,20 @@ def import_issues(issues):
 
         template_data = {}
         template_data['user_name'] = issue['user']['login']
-        template_data['user_url'] = issue['user']['html_url']
+        if config.get("source", "system") == "gogs":
+            template_data['user_url'] = "https://" + config.get("source", "server") + "/" + template_data['user_name']
+        else:
+            template_data['user_url'] = issue['user']['html_url']
         template_data['user_avatar'] = issue['user']['avatar_url']
         template_data['date'] = format_date(issue['created_at'])
-        template_data['url'] = issue['html_url']
+        if config.get("source", "system") == "gogs":
+            template_data['url'] = "https://" + config.get("source", "server") + "/" + \
+                                   config.get("source", "repository") + "/issues/" + str(issue['number'])
+        else:
+            template_data['url'] = issue['html_url']
         template_data['body'] = issue['body']
 
-        if 'pull_request' in issue:
+        if 'pull_request' in issue.keys() and issue['pull_request'] is not None:
             if config.getboolean('settings', 'import-pulls'):
                 pull_request_ids.append(issue['id'])
                 if issue['pull_request']['html_url'] is not None:
