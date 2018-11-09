@@ -409,13 +409,6 @@ def import_issues(issues):
         elif issue['state'] == 'closed':
             closed_issue_ids.append(issue['id'])
 
-        # Temporary fix for marking closed issues
-        if issue['closed_at']:
-            if 'pull_request' in issue:
-                new_issue['title'] = "[PR][CLOSED] " + new_issue['title']
-            else:
-                new_issue['title'] = "[ISSUE][CLOSED] " + new_issue['title']
-
         if config.getboolean('settings', 'import-comments') and 'comments' in issue and issue['comments'] != 0:
             num_new_comments += int(issue['comments'])
             new_issue['comments'] = get_comments_on_issue('source', issue)
