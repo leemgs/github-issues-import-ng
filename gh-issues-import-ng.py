@@ -29,14 +29,15 @@ class state:
 state.current = state.INITIALIZING
 
 http_error_messages = {}
-http_error_messages[401] = "ERROR: There was a problem during authentication.\nDouble check that your username and " \
-                           "password are correct, and that you have permission to read from or write to the specified" \
-                           " repositories."
-http_error_messages[403] = http_error_messages[401]     # Basically the same problem.
-                                                        # GitHub returns 403 instead to prevent abuse.
-http_error_messages[404] = "ERROR: Unable to find the specified repository.\nDouble check the spelling for the source" \
-                           " and target repositories. If either repository is private, make sure the specified user " \
-                           "is allowed access to it."
+http_error_messages[401] = "HTTP ERROR 401: There was a problem during authentication.\n" \
+                           "Double check that your username and password are correct, " \
+                           "and that you have permission to read from or write to the specified repositories."
+http_error_messages[403] = "HTTP ERROR 403: GitHub returns 403 to prevent abuse. " \
+                           "The server understood the request, but is refusing to fulfill it. " \
+                           "Authorization will not help and the request SHOULD NOT be repeated."
+http_error_messages[404] = "HTTP ERROR 404: Unable to find the specified repository.\n" \
+                           "Double check the spelling for the source and target repositories. " \
+                           "If either repository is private, make sure the specified user is allowed access to it."
 
 
 def init_config():
