@@ -8,6 +8,7 @@ import datetime
 import argparse, configparser
 
 import query
+import time
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 default_config_file = os.path.join(__location__, 'config.ini')
@@ -239,6 +240,8 @@ def format_comment(template_data):
 def send_request(which, url, post_data=None, method=None):
     if post_data is not None:
         post_data = json.dumps(post_data).encode("utf-8")
+        # avoid abuse rate limits
+        time.sleep(2)
 
     full_url = "%s/%s" % (config.get(which, 'url'), url)
     if method:
@@ -255,25 +258,50 @@ def send_request(which, url, post_data=None, method=None):
     req.add_header("Accept", "application/vnd.github.golden-comet-preview")
     req.add_header("User-Agent", "github-issues-import-ng")
 
-    try:
-        response = urllib.request.urlopen(req)
-        json_data = response.read()
-    except urllib.error.HTTPError as error:
+    retry_after = True
+    count = 5
 
-        error_details = error.read()
-        error_details = json.loads(error_details.decode("utf-8"))
+    # retry on 403
+    while retry_after:
+        retry_after = False
+        try:
+            response = urllib.request.urlopen(req)
+            json_data = response.read()
+            if count >= 10:
+                count = count / 2
+            else:
+                count = 5
+        except urllib.error.HTTPError as error:
 
-        print("DEBUG: '%s' could not execute a webhook request with json. Type is '%s'." % (which, url))
-        if error.code in http_error_messages:
-            sys.exit(http_error_messages[error.code])
-        else:
-            error_message = "ERROR: There was a problem importing the issues.\n%s %s" % (error.code, error.reason)
-            if 'message' in error_details:
-                error_message += "\nDETAILS: " + error_details['message']
-            sys.exit(error_message)
-    except urllib.error.URLError as error:
-        print("Encountered a fatal error requesting URL {0}".format(req.get_full_url()), file=sys.stderr)
-        sys.exit(error)
+            # wait Retry-After or approx.
+            if error.code == 403:
+                if 'Retry-After' in error.hdrs:
+                    time.sleep(int(error.hdrs['Retry-After']))
+                else:
+                    retry_after = True
+                    time.sleep(30*count)
+                    count = count + 1
+
+            error_details = error.read()
+            error_details = json.loads(error_details.decode("utf-8"))
+
+            print("DEBUG: '%s' could not execute a webhook request with json. Type is '%s'." % (which, url))
+            if error.code in http_error_messages:
+                if retry_after:
+                    print(http_error_messages[error.code])
+                else:
+                    sys.exit(http_error_messages[error.code])
+            else:
+                error_message = "ERROR: There was a problem importing the issues.\n%s %s" % (error.code, error.reason)
+                if 'message' in error_details:
+                    error_message += "\nDETAILS: " + error_details['message']
+                    if retry_after:
+                        print(error_message)
+                    else:
+                        sys.exit(error_message)
+        except urllib.error.URLError as error:
+            print("Encountered a fatal error requesting URL {0}".format(req.get_full_url()), file=sys.stderr)
+            sys.exit(error)
 
     return json.loads(json_data.decode("utf-8"))
 
