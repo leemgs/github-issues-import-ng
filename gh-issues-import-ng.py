@@ -251,8 +251,8 @@ def send_request(which, url, post_data=None, method=None):
     req.add_header("Authorization",
                    b"Basic " + base64.urlsafe_b64encode(username.encode("utf-8") + b":" + password.encode("utf-8")))
 
-    req.add_header("Content-Type", "application/json")
-    req.add_header("Accept", "application/json")
+    req.add_header("Content-Type", "application/vnd.github.golden-comet-preview")
+    req.add_header("Accept", "application/vnd.github.golden-comet-preview")
     req.add_header("User-Agent", "github-issues-import-ng")
 
     try:
