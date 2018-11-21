@@ -29,17 +29,6 @@ class state:
 
 state.current = state.INITIALIZING
 
-http_error_messages = {}
-http_error_messages[401] = "HTTP ERROR 401: There was a problem during authentication.\n" \
-                           "Double check that your username and password are correct, " \
-                           "and that you have permission to read from or write to the specified repositories."
-http_error_messages[403] = "HTTP ERROR 403: GitHub returns 403 to prevent abuse. " \
-                           "The server understood the request, but is refusing to fulfill it. " \
-                           "Authorization will not help and the request SHOULD NOT be repeated."
-http_error_messages[404] = "HTTP ERROR 404: Unable to find the specified repository.\n" \
-                           "Double check the spelling for the source and target repositories. " \
-                           "If either repository is private, make sure the specified user is allowed access to it."
-
 
 def init_config():
     config.add_section('login')
@@ -286,19 +275,16 @@ def send_request(which, url, post_data=None, method=None):
             error_details = json.loads(error_details.decode("utf-8"))
 
             print("DEBUG: '%s' could not execute a webhook request with json. Type is '%s'." % (which, url))
-            if error.code in http_error_messages:
-                if retry_after:
-                    print(http_error_messages[error.code])
-                else:
-                    sys.exit(http_error_messages[error.code])
+            error_message = "ERROR: There was a problem importing the issues.\n%s %s" % (error.code, error.reason)
+            if 'message' in error_details:
+                error_message += "\nDETAILS: " + error_details['message']
+            if 'documentation_url' in error_details:
+                error_message += "\nURL: " + error_details['documentation_url']
+
+            if retry_after:
+                print(error_message)
             else:
-                error_message = "ERROR: There was a problem importing the issues.\n%s %s" % (error.code, error.reason)
-                if 'message' in error_details:
-                    error_message += "\nDETAILS: " + error_details['message']
-                    if retry_after:
-                        print(error_message)
-                    else:
-                        sys.exit(error_message)
+                sys.exit(error_message)
         except urllib.error.URLError as error:
             print("Encountered a fatal error requesting URL {0}".format(req.get_full_url()), file=sys.stderr)
             sys.exit(error)
