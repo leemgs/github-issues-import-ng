@@ -3,8 +3,8 @@
 # @brief: a simple script to import all issue
 # This script is to transfer all issues from a repository to another repository
 # @note
-# Note that github webhook API limits to 030 requests at once with the ?page parameter.
-# Note that github webhook API limits to 100 requests at once with the ?per_page parameter.
+# Note that the GitHub Webhook API limits to 030 requests at once with the ?page parameter.
+# Note that the GitHub Webhook API limits to 100 requests at once with the ?per_page parameter.
 # https://developer.github.com/v3/#pagination
 # @author: Geunsik Lim <leemgs@gmail.com>
 
@@ -13,7 +13,7 @@
 github_com_id="leemgs"
 
 # Declare the number of issues that you want to maintain as a group to avoid a service denial
-# when webhook API requests exceed a max number of a rate limit in github.com.
+# when Webhook API requests exceed a max number of a rate limit in github.com.
 # Note: If you meet "ERROR: There was a problem during authentication", we recommend
 # that you try to define smaller numbers instead of 20 (binding issues as a group).
 # For example, 20(default), 10, 8, 6, 4, and 2 issues.
@@ -50,15 +50,15 @@ White='\033[0;37m'        # White
 
 # Display initial messages
 echo -e "\n\n\n"
-echo -e "${Red}Starting a github issue mover...${NC}"
+echo -e "${Red}Starting a GitHub issue mover...${NC}"
 echo -e "[DEBUG] Please modify 'ISSUE_LAST' value by running './gh-issue-import-ng.py --all'."
 echo -e "[DEBUG] You can get the 'ISSUE_LAST' value from 'output: xxx new issues' message."
 
 # Understanding the rate limit rule of github.com
 # First of all, we have to find out the maximum number of requests we are permitted
 # by the rate limit rules of github.com by running as following:
-# 1. anonymous access: "curl -i https://api.github.com/users/<user_id> | grep RateLimit"
-# 2. token key access: "curl -i https://api.github.com/users -u <user_id>:<token_key> | grep RateLimit"
+# 1. The anonymous access: "curl -i https://api.github.com/users/<user_id> | grep RateLimit"
+# 2. The token key access: "curl -i https://api.github.com/users -u <user_id>:<token_key> | grep RateLimit"
 
 
 # Declare wait time that you want to sleep in case of a service denial from github.com.
@@ -95,7 +95,7 @@ for ((i=$ISSUE_START; i<=$ISSUE_LAST;i++)); do
         echo -e "Successfully transferred issue $i."
     else
         # Save error messages into the log file.
-        echo -e "${Red}Oooops. Issue $i is failed. The message is saved in $LOG_FILE file.${NC}"
+        echo -e "${Red}Oops. Issue $i is failed. The message is saved in $LOG_FILE file.${NC}"
         echo -e "Issue $i is failed." >> $LOG_FILE
         # Save current limit information
         curl -i https://api.github.com/users/$github_com_id | grep RateLimit >> $LOG_FILE
